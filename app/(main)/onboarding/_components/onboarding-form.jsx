@@ -60,18 +60,15 @@ const OnboardingForm = ({ industries }) => {
         ...values,
         industry: formattedIndustry,
       });
+      toast.success("Profile completed successfully!");
+      router.push("/dashboard");
+      router.refresh();
     } catch (error) {
       console.error("Onboarding error:", error);
     }
   };
 
-  useEffect(() => {
-    if (updateResult?.success && !updateLoading) {
-      toast.success("Profile completed successfully!");
-      router.push("/dashboard");
-      router.refresh();
-    }
-  }, [updateResult, updateLoading]);
+
 
   const watchIndustry = watch("industry");
 
