@@ -32,8 +32,8 @@ export default function RootLayout({ children }) {
             <Toaster richColors />
 
             {/* Updated Footer */}
-            <Box component="footer" sx={{ bgcolor: "black", py: 6, color: "gray.300" }}>
-              <Container maxWidth="lg">
+            <Box className="bg-muted/50 py-12">
+              <Container className="container mx-auto px-4 text-center text-gray-200">
                 <Grid container spacing={4} justifyContent="space-between">
                   {/* Left Section - Logo & Subscription */}
                   <Grid item xs={12} md={3}>
