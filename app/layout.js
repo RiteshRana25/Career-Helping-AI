@@ -5,23 +5,22 @@ import Header from "@/components/header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { Toaster } from "sonner";
+import { Container, Grid, Typography, Box, Link, IconButton } from "@mui/material";
+import { Twitter, Facebook, Instagram} from "@mui/icons-material";
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
-const inter=Inter({subsets:['latin']});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Carrer Helping AI",
+  title: "Career Helping AI",
   description: "",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider appearance={{
-      baseTheme:dark
-    }}>
+    <ClerkProvider appearance={{ baseTheme: dark }}>
       <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${inter.className}`}
-        >
+        <body className={`${inter.className}`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
@@ -29,10 +28,11 @@ export default function RootLayout({ children }) {
             disableTransitionOnChange
           >
             <Header />
-            {/* {header} */}
             <main className="min-h-screen">{children}</main>
-            <Toaster richColors/>
-             <Box component="footer" sx={{ bgcolor: "black", py: 6, color: "gray.300" }}>
+            <Toaster richColors />
+
+            {/* Updated Footer */}
+            <Box component="footer" sx={{ bgcolor: "black", py: 6, color: "gray.300" }}>
               <Container maxWidth="lg">
                 <Grid container spacing={4} justifyContent="space-between">
                   {/* Left Section - Logo & Subscription */}
@@ -76,6 +76,7 @@ export default function RootLayout({ children }) {
                 </Grid>
               </Container>
             </Box>
+
           </ThemeProvider>
         </body>
       </html>
