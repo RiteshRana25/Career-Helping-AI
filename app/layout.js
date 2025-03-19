@@ -32,8 +32,8 @@ export default function RootLayout({ children }) {
             <Toaster richColors />
 
             {/* Updated Footer */}
-            <Box className="bg-muted/50 py-12">
-              <Container className="container mx-auto px-4 text-center text-gray-200">
+            <footer className="bg-muted/50 py-12">
+              <div className="container mx-auto px-4 text-center text-gray-200">
                 <Grid container spacing={4} justifyContent="space-between">
                   {/* Left Section - Logo & Subscription */}
                   <Grid item xs={12} md={3}>
@@ -74,8 +74,8 @@ export default function RootLayout({ children }) {
                   </Grid>
 
                 </Grid>
-              </Container>
-            </Box>
+              </div>
+            </footer>
 
           </ThemeProvider>
         </body>
