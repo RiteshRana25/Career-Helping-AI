@@ -109,7 +109,7 @@ const JobSearch = () => {
   return (
     <div className="container mx-auto p-6 bg-black text-white rounded-lg shadow-xl">
       <h1 className="text-4xl font-semibold text-center mb-6 text-gray-100 hover:text-white transition-colors duration-300">
-        Recommended Jobs based on your skills
+      Search Results for Internship
       </h1>
 
       <div className="mb-6">
