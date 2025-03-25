@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const JobSearch = () => {
   const [jobs, setJobs] = useState([]);
@@ -11,6 +13,7 @@ const JobSearch = () => {
 
   // Define the array of languages you want to search for
   const languages = ["react", "python", "javascript", "java"];
+  const router = useRouter();
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -33,7 +36,7 @@ const JobSearch = () => {
               headers: {
                 "x-rapidapi-host": "linkedin-data-api.p.rapidapi.com",
                 "x-rapidapi-key":
-                  "1840eb60a0msh2f5e9e1ea264745p133df8jsn55c8ca388784",
+                  "cb6eff14f1mshf2f6b4d6a3eb602p127547jsnd3ff44ebaba2",
               },
             }
           );
@@ -96,8 +99,13 @@ const JobSearch = () => {
   return (
     <div className="container mx-auto p-6 bg-black text-white rounded-lg shadow-xl">
       <h1 className="text-4xl font-semibold text-center mb-6 text-gray-100 hover:text-white transition-colors duration-300">
-      Recommended Internship based on your skills
+        Recommended Internship based on your skills
       </h1>
+      <div className="text-center mb-6">
+        <Button onClick={() => router.push("/internship/internshipsearch")}>
+          Search Internship
+        </Button>
+      </div>
       <div className="space-y-6">
         {Array.isArray(currentJobs) && currentJobs.length > 0 ? (
           currentJobs.map((job, index) => (
