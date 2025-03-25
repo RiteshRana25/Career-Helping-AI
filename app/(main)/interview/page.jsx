@@ -2,6 +2,7 @@ import { getAssessments } from "@/actions/interview";
 import StatsCards from "./_components/stats-cards";
 import PerformanceChart from "./_components/performace-chart";
 import QuizList from "./_components/quiz-list";
+import ShortQuestionList from "./_components/shortquestion-list"; // Import the ShortQuestionList component
 
 export default async function InterviewPrepPage() {
   const assessments = await getAssessments();
@@ -17,6 +18,7 @@ export default async function InterviewPrepPage() {
         <StatsCards assessments={assessments} />
         <PerformanceChart assessments={assessments} />
         <QuizList assessments={assessments} />
+        <ShortQuestionList assessments={assessments} /> {/* Add ShortQuestionList after QuizList */}
       </div>
     </div>
   );

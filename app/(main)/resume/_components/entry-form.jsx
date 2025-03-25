@@ -165,6 +165,7 @@ export function EntryForm({ type, entries, onChange }) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <p>From</p>
                 <Input
                   type="month"
                   {...register("startDate")}
@@ -177,6 +178,7 @@ export function EntryForm({ type, entries, onChange }) {
                 )}
               </div>
               <div className="space-y-2">
+                <p>To</p>
                 <Input
                   type="month"
                   {...register("endDate")}
