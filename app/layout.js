@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 import { Container, Grid, Typography, Box, Link, IconButton } from "@mui/material";
 import { Twitter, Facebook, Instagram} from "@mui/icons-material";
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import ChatWidget from "@/components/chat";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
             <Header />
             <main className="min-h-screen">{children}</main>
             <Toaster richColors />
+            <ChatWidget/>
 
             {/* Updated Footer */}
             <footer className="bg-muted/50 py-12">

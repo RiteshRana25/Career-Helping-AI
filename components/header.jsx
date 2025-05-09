@@ -46,6 +46,24 @@ const Header = async () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
+              <Link href={'/roadmap'} className="flex items-center gap-2">
+                <GraduationCap className="h-4 w-4" />
+                <span>Skill Learn</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+              <Link href={'/interview'} className="flex items-center gap-2">
+                <GraduationCap className="h-4 w-4" />
+                <span>Interview Prep</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+              <Link href={'/job'} className="flex items-center gap-2">
+                <GraduationCap className="h-4 w-4" />
+                <span>Job Prep</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
                 <Link href={'/resume'} className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <span>Build Resume</span>
@@ -55,12 +73,6 @@ const Header = async () => {
               <Link href={'/ai-cover-letter'} className="flex items-center gap-2">
                 <PenBox className="h-4 w-4" />
                 <span>Cover Letter</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-              <Link href={'/interview'} className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                <span>Interview Prep</span>
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>

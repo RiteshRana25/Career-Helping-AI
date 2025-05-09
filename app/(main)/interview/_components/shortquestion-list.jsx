@@ -2,54 +2,62 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { generateShortQuestions } from "@/actions/interview-assessment";
 import ShortQuestionResult from "./shortquestion-result";
 
-export default function ShortQuestionList({ assessments }) {
+export default function ShortQuestionList({ questions }) {
   const router = useRouter();
-  const [selectedQuestions, setSelectedQuestions] = useState(null);
+  const [selected, setSelected] = useState(null);
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="gradient-title text-3xl md:text-4xl">
-                Study Questions
-              </CardTitle>
-              <CardDescription>
-                Review your past study questions
-              </CardDescription>
+      {!selected ? (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="gradient-title text-3xl md:text-4xl">
+                  Study Question Sets
+                </CardTitle>
+                <CardDescription>
+                  Click any set to review its questions and answers.
+                </CardDescription>
+              </div>
+              <Button onClick={() => router.push("/interview/short-question")}>
+                Get New Questions
+              </Button>
             </div>
-            <Button onClick={() => router.push("/interview/short-question")}>
-              Get New Questions
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {assessments?.map((assessment, i) => (
-              <Card
-                key={assessment.id}
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {questions.map((qset, i) => (
+                <Card
+                key={qset.id}
+                onClick={() => setSelected(qset)} // This is good: you're passing the full record
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => setSelectedQuestions(assessment)}
               >
-                <CardHeader>
-                  <CardTitle className="gradient-title text-2xl">
-                    Question Set {i + 1}
-                  </CardTitle>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {selectedQuestions && (
-        <ShortQuestionResult result={selectedQuestions} />
+                  <CardHeader>
+                    <CardTitle className="text-xl">
+                      Question Set {i + 1}
+                    </CardTitle>
+                    <CardDescription>
+                      {qset.createdAt && new Date(qset.createdAt).toLocaleString()}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <ShortQuestionResult result={selected} onBack={() => setSelected(null)} />
       )}
     </>
   );

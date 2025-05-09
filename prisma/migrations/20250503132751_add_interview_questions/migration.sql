@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "InterviewQuestion" ALTER COLUMN "question" SET NOT NULL,
+ALTER COLUMN "question" SET DATA TYPE TEXT,
+ALTER COLUMN "answer" SET NOT NULL,
+ALTER COLUMN "answer" SET DATA TYPE TEXT;

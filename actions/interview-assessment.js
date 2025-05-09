@@ -14,6 +14,7 @@ export async function generateShortQuestions() {
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
     select: {
+      id: true,
       industry: true,
       skills: true,
     },
@@ -23,8 +24,8 @@ export async function generateShortQuestions() {
 
   const prompt = `
     Generate 10 common interview questions for a ${user.industry} professional${
-      user.skills?.length ? ` with expertise in ${user.skills.join(", ")}` : ""
-    }.
+    user.skills?.length ? ` with expertise in ${user.skills.join(", ")}` : ""
+  }.
     Each question should have a clear and concise answer.
     Return the response in this JSON format:
     {
@@ -42,11 +43,43 @@ export async function generateShortQuestions() {
     const response = result.response;
     const text = response.text();
     const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
-    const shortQuestions = JSON.parse(cleanedText);
+    const parsed = JSON.parse(cleanedText);
 
-    return shortQuestions.questions;
+    const questions = parsed.questions;
+
+    await db.interviewQuestion.create({
+      data: {
+        userId: user.id,
+        qaPairs: questions,
+      },
+    });
+    
+    return questions;
   } catch (error) {
-    console.error("Error generating short questions:", error);
-    throw new Error("Failed to generate short questions");
+    console.error("Error generating or saving short questions:", error);
+    throw new Error("Failed to generate or save short questions");
+  }
+}
+
+export async function getShortQuestions() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+  
+    if (!user) throw new Error("User not found");
+  
+
+  try {
+    const questions = await db.interviewQuestion.findMany({
+      where: { userId:user.id },
+      orderBy: { createdAt: "asc" },
+    });
+    return questions;
+  } catch (error) {
+    console.error("Error fetching short questions:", error);
+    throw new Error("Failed to fetch short questions");
   }
 }

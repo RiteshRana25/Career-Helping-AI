@@ -32,6 +32,10 @@ model User{
   assessments     Assessment[]
   resume          Resume?
   coverLetter     CoverLetter[]
+  interviewQuestions InterviewQuestion[]
+  chatMessages    ChatMessage[]
+  interviewInsight InterviewInsight[]
+  learningRoadmap  LearningRoadmap[]
 }
 
 
@@ -51,13 +55,32 @@ model Assessment{
 }
 
 model InterviewQuestion {
-  id           String   @id @default(uuid())
-  industry     String
-  question     String
-  answer       String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  qaPairs   Json     // stores an array of { question, answer } objects
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
+
+model InterviewInsight {
+  id             String      @id @default(uuid())
+  userId         String
+  user           User        @relation(fields: [userId], references: [id])
+
+  company        String
+  role           String
+  rounds         Json        // Array of rounds with 5 questions each
+  generalTips    String?     // Optional string or could be changed to Json if you want multiple tips
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([userId])
+}
+
 
 model Resume{
   id           String         @id @default(uuid())
@@ -99,6 +122,33 @@ model IndustryInsight{
 
   @@index([industry])
 }
+
+model LearningRoadmap {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  skill     String
+  language  String
+  level     String
+
+  roadmap   Json     
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  role      String   // 'user' or 'bot'
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
 
 enum DemandLevel {
   HIGH
