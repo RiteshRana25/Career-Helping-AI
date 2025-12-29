@@ -2,10 +2,10 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// Initialize Gemini client (reads GEMINI_API_KEY automatically)
+const ai = new GoogleGenAI({});
 
 export async function generateInterviewInsight(company, role) {
   const { userId } = await auth();
@@ -35,19 +35,26 @@ export async function generateInterviewInsight(company, role) {
         "name": "Round name",
         "questions": [
           "Question 1",
-          "Question 2",
-          ...
+          "Question 2"
         ]
       }
     ],
     "generalTips": ["Tip 1", "Tip 2"]
   }
   `;
-  
 
   try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().replace(/```(?:json)?\n?/g, "").trim();
+    // NEW Gemini call
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    const text = result.text
+      .replace(/```(?:json)?/g, "")
+      .replace(/```/g, "")
+      .trim();
+
     const parsed = JSON.parse(text);
 
     const savedInsight = await db.interviewInsight.create({

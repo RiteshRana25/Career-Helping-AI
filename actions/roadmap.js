@@ -5,7 +5,13 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash",
+  generationConfig: {
+    responseMimeType: "application/json",
+  },
+});
 
 export async function generateLearningRoadmap(skill, language, level) {
   const { userId } = await auth();
@@ -31,7 +37,7 @@ Generate a step-by-step learning roadmap. For each step:
 - Recommend relevant websites/platforms (with names and links)
 - Recommend one useful book or article (with name and a link if possible)
 
-Return ONLY valid JSON with NO explanation, NO Markdown, and NO extra text. Begin with "{" and end with "}". Format:
+Return ONLY valid JSON. Begin with "{" and end with "}". Format:
 {
   "roadmap": [
     {
@@ -39,22 +45,13 @@ Return ONLY valid JSON with NO explanation, NO Markdown, and NO extra text. Begi
       "topic": "Topic Name",
       "description": "Short explanation",
       "youtube": [
-        {
-          "title": "Video Title",
-          "url": "https://youtube.com/..."
-        }
+        { "title": "Video Title", "url": "https://youtube.com/..." }
       ],
       "websites": [
-        {
-          "name": "Platform or Website Name",
-          "url": "https://..."
-        }
+        { "name": "Website Name", "url": "https://..." }
       ],
       "books": [
-        {
-          "title": "Book or Article Title",
-          "url": "https://..."
-        }
+        { "title": "Book or Article Title", "url": "https://..." }
       ]
     }
   ]
@@ -63,28 +60,16 @@ Return ONLY valid JSON with NO explanation, NO Markdown, and NO extra text. Begi
 
   try {
     const result = await model.generateContent(prompt);
-    const response = result.response;
-    const rawText = response.text();
+    const rawText = result.response.text();
 
-    // Clean the model output
-    const cleanedText = rawText.replace(/```(?:json)?\n?|```/g, "").trim();
-    console.log("Raw Gemini response:", rawText);
-    console.log("Cleaned response:", cleanedText);
-
-    if (!cleanedText) {
+    if (!rawText) {
       throw new Error("Empty response from Gemini model");
     }
 
     let roadmapData;
     try {
-      const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        console.error("❌ No valid JSON block found:", cleanedText);
-        throw new Error("No JSON block found in response");
-      }
-      roadmapData = JSON.parse(jsonMatch[0]);
-    } catch (err) {
-      console.error("❌ Failed to parse JSON from Gemini:", cleanedText);
+      roadmapData = JSON.parse(rawText);
+    } catch {
       throw new Error("Invalid JSON format in Gemini response");
     }
 
@@ -93,11 +78,8 @@ Return ONLY valid JSON with NO explanation, NO Markdown, and NO extra text. Begi
       typeof roadmapData !== "object" ||
       !Array.isArray(roadmapData.roadmap)
     ) {
-      console.error("❌ Invalid roadmap structure:", roadmapData);
       throw new Error("Roadmap JSON structure is invalid");
     }
-
-    console.log("✅ Parsed roadmapData:", JSON.stringify(roadmapData, null, 2));
 
     const saved = await db.learningRoadmap.create({
       data: {
@@ -105,11 +87,10 @@ Return ONLY valid JSON with NO explanation, NO Markdown, and NO extra text. Begi
         skill,
         language,
         level,
-        roadmap: roadmapData, // roadmap is now a single Json object
+        roadmap: roadmapData,
       },
     });
 
-    console.log("✅ Successfully saved roadmap:", saved);
     return saved;
   } catch (error) {
     console.error("🚨 Error generating roadmap:", error);
@@ -127,10 +108,8 @@ export async function getLearningRoadmaps() {
 
   if (!user) throw new Error("User not found");
 
-  const roadmaps = await db.learningRoadmap.findMany({
+  return db.learningRoadmap.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
   });
-
-  return roadmaps;
 }

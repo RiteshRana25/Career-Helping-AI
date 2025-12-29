@@ -1,22 +1,23 @@
-"use server"
+"use server";
 
-import { db } from "@/lib/prisma"
-import { auth } from "@clerk/nextjs/server"
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { db } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+import { GoogleGenAI } from "@google/genai"; // Updated import for the latest API
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+// Initialize client (picks up GEMINI_API_KEY from environment variables)
+const ai = new GoogleGenAI({});
 
 export async function sendMessageToBot(message) {
-  const { userId: clerkUserId } = await auth()
-  if (!clerkUserId) throw new Error("Unauthorized")
+  // Authenticate user
+  const { userId: clerkUserId } = await auth();
+  if (!clerkUserId) throw new Error("Unauthorized");
 
   const user = await db.user.findUnique({
     where: { clerkUserId },
-  })
-  if (!user) throw new Error("User not found")
+  });
+  if (!user) throw new Error("User not found");
 
-  const dbUserId = user.id
+  const dbUserId = user.id;
 
   // Save user message
   await db.chatMessage.create({
@@ -25,11 +26,15 @@ export async function sendMessageToBot(message) {
       role: "user",
       content: message,
     },
-  })
+  });
 
-  // Get bot response from Gemini
-  const result = await model.generateContent(message)
-  const botResponse = result.response.text().trim()
+  // Get bot response from Gemini 2.5 Flash
+  const result = await ai.models.generateContent({
+    model: "gemini-2.5-flash", // ✅ Supported model
+    contents: message,
+  });
+
+  const botResponse = result.text.trim();
 
   // Save bot response
   await db.chatMessage.create({
@@ -38,19 +43,22 @@ export async function sendMessageToBot(message) {
       role: "bot",
       content: botResponse,
     },
-  })
+  });
 
-  return botResponse
+  return botResponse;
 }
-export async function getChatHistory() {
-  const { userId: clerkUserId } = await auth()
-  if (!clerkUserId) throw new Error("Unauthorized")
 
-  const user = await db.user.findUnique({ where: { clerkUserId } })
-  if (!user) throw new Error("User not found")
+export async function getChatHistory() {
+  const { userId: clerkUserId } = await auth();
+  if (!clerkUserId) throw new Error("Unauthorized");
+
+  const user = await db.user.findUnique({
+    where: { clerkUserId },
+  });
+  if (!user) throw new Error("User not found");
 
   return db.chatMessage.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "asc" },
-  })
+  });
 }

@@ -2,10 +2,10 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// Initialize Gemini client (reads GEMINI_API_KEY automatically)
+const ai = new GoogleGenAI({});
 
 export async function generateShortQuestions() {
   const { userId } = await auth();
@@ -24,8 +24,8 @@ export async function generateShortQuestions() {
 
   const prompt = `
     Generate 10 common interview questions for a ${user.industry} professional${
-    user.skills?.length ? ` with expertise in ${user.skills.join(", ")}` : ""
-  }.
+      user.skills?.length ? ` with expertise in ${user.skills.join(", ")}` : ""
+    }.
     Each question should have a clear and concise answer.
     Return the response in this JSON format:
     {
@@ -39,9 +39,15 @@ export async function generateShortQuestions() {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
+    // NEW Gemini call
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    const text = result.text;
+
+    // Same cleanup logic as before
     const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
     const parsed = JSON.parse(cleanedText);
 
@@ -53,7 +59,7 @@ export async function generateShortQuestions() {
         qaPairs: questions,
       },
     });
-    
+
     return questions;
   } catch (error) {
     console.error("Error generating or saving short questions:", error);
@@ -65,16 +71,15 @@ export async function getShortQuestions() {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-  
-    if (!user) throw new Error("User not found");
-  
+  const user = await db.user.findUnique({
+    where: { clerkUserId: userId },
+  });
+
+  if (!user) throw new Error("User not found");
 
   try {
     const questions = await db.interviewQuestion.findMany({
-      where: { userId:user.id },
+      where: { userId: user.id },
       orderBy: { createdAt: "asc" },
     });
     return questions;

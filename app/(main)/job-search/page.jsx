@@ -2,189 +2,168 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 
 const JobSearch = () => {
   const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [jobsPerPage] = useState(20); // Number of jobs per page
 
-  // Define the array of languages you want to search for
-  const languages = ["react", "python", "javascript", "java"];
-  const router = useRouter();
+  // Search filters
+  const [title, setTitle] = useState("");
+  const [location, setLocation] = useState("India");
+  const [jobType, setJobType] = useState("FULL_TIME");
+  const [remoteOnly, setRemoteOnly] = useState(false);
+  const [seniority, setSeniority] = useState("Entry level");
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        // Initialize an empty array to store all the job results
-        let allJobs = [];
+  const fetchJobs = async () => {
+    if (!title) return;
 
-        // Loop through each language and make an API request
-        for (let language of languages) {
-          const response = await axios.get(
-            "https://linkedin-data-api.p.rapidapi.com/search-jobs-v2",
-            {
-              params: {
-                keywords: language, // Search for a specific language
-                locationId: "102713980",
-                datePosted: "pastWeek",
-                jobType: "fullTime",
-                sort: "mostRelevant",
-              },
-              headers: {
-                "x-rapidapi-host": "linkedin-data-api.p.rapidapi.com",
-                "x-rapidapi-key":
-                  "87a71e82a8mshfdad215c850382cp1be41ejsn402bc1f089f7",
-              },
-            }
-          );
+    setLoading(true);
+    setError(null);
 
-          // Merge the fetched jobs with the previously collected jobs
-          allJobs = [...allJobs, ...response.data.data];
+    try {
+      const response = await axios.get(
+        "https://linkedin-job-search-api.p.rapidapi.com/active-jb-24h",
+        {
+          params: {
+            limit: 20,
+            offset: 0,
+            title_filter: title,
+            location_filter: location,
+            type_filter: jobType,
+            remote: remoteOnly,
+            seniority_filter: seniority,
+            description_type: "text",
+          },
+          headers: {
+            "x-rapidapi-host":
+              "linkedin-job-search-api.p.rapidapi.com",
+            "x-rapidapi-key": process.env.NEXT_PUBLIC_RAPIDAPI_KEY,
+          },
         }
+      );
 
-        // Update state with all the fetched jobs
-        setJobs(allJobs);
-        setLoading(false);
-      } catch (error) {
-        setError(error);
-        setLoading(false);
-      }
-    };
-
-    fetchJobs();
-  }, []); // Empty dependency array to run once when the component mounts
-
-  // Format date helper function
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+      console.log("API RESPONSE:", response.data);
+      setJobs(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error("API ERROR:", err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Get current jobs based on the page number
-  const indexOfLastJob = currentPage * jobsPerPage;
-  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-  const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
-
-  // Change page
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-black">
-        <div className="text-lg font-semibold text-white">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-black">
-        <div className="text-red-500 text-lg font-semibold">
-          Error loading jobs: {error.message}
-        </div>
-      </div>
-    );
-  }
-
-  // Calculate total pages
-  const totalPages = Math.ceil(jobs.length / jobsPerPage);
-
   return (
-    <div className="container mx-auto p-6 bg-black text-white rounded-lg shadow-xl">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-4xl font-semibold text-center text-gray-100 hover:text-white transition-colors duration-300">
-          Recommended Jobs based on your skills
-        </h1>
-        {/* Add "Search Jobs" link below the heading */}
-        <div className="text-center mb-6">
-          <Button onClick={() => router.push("/job-search/jobsearch")}>
-            Search Jobs
-          </Button>
-        </div>
+    <div className="container mx-auto p-6 bg-black text-white min-h-screen">
+      <h1 className="text-3xl font-semibold mb-6">Search Jobs</h1>
+
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Job Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="p-2 rounded bg-gray-700 text-white"
+        />
+
+        <input
+          type="text"
+          placeholder="Location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className="p-2 rounded bg-gray-700 text-white"
+        />
+
+        <select
+          value={jobType}
+          onChange={(e) => setJobType(e.target.value)}
+          className="p-2 rounded bg-gray-700 text-white"
+        >
+          <option value="FULL_TIME">Full-time</option>
+          <option value="PART_TIME">Part-time</option>
+          <option value="CONTRACT">Contract</option>
+        </select>
+
+        <select
+          value={seniority}
+          onChange={(e) => setSeniority(e.target.value)}
+          className="p-2 rounded bg-gray-700 text-white"
+        >
+          <option value="Entry level">Entry level</option>
+          <option value="Associate">Associate</option>
+          <option value="Mid-Senior level">Mid-Senior level</option>
+          <option value="Director">Director</option>
+          <option value="Executive">Executive</option>
+          <option value="Not Applicable">Not Applicable</option>
+        </select>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={remoteOnly}
+            onChange={(e) => setRemoteOnly(e.target.checked)}
+          />
+          Remote Only
+        </label>
+
+        <Button onClick={fetchJobs}>Search</Button>
       </div>
 
+      {/* Loading/Error */}
+      {loading && <p>Loading jobs...</p>}
+      {error && <p className="text-red-500">Error: {error.message}</p>}
+
+      {/* Jobs List */}
       <div className="space-y-6">
-        {Array.isArray(currentJobs) && currentJobs.length > 0 ? (
-          currentJobs.map((job, index) => (
+        {jobs.length === 0 && !loading ? (
+          <p className="text-gray-400">No jobs found</p>
+        ) : (
+          jobs.map((job) => (
             <div
-              key={index}
-              className="bg-gray-800 rounded-lg shadow-2xl p-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 transition-transform transform hover:scale-105 hover:shadow-xl"
+              key={job.id}
+              className="bg-gray-800 p-6 rounded-lg flex flex-col md:flex-row gap-4"
             >
-              <div className="flex-shrink-0">
+              {job.organization_logo && (
                 <img
-                  src={job.company.logo}
-                  alt={job.company.name}
+                  src={job.organization_logo}
+                  alt={job.organization}
                   className="w-16 h-16 rounded-full object-cover"
                 />
-              </div>
+              )}
+
               <div className="flex-1">
-                <h3 className="text-2xl font-semibold text-gray-200 hover:text-white transition-colors duration-300">
-                  {job.title}
-                </h3>
-                <p className="text-gray-300">
-                  <strong>Location:</strong> {job.location}
-                </p>
-                <p className="text-gray-300">
-                  <strong>Company:</strong> {job.company.name}
-                </p>
-                <p className="text-gray-300">
-                  <strong>Posted:</strong> {formatDate(job.postAt)}
-                </p>
+                <h3 className="text-xl font-semibold">{job.title}</h3>
+                <p>{job.organization || "Company N/A"}</p>
+                <p>{job.locations_derived?.[0] || "Location N/A"}</p>
+                <p>Posted: {job.date_posted ? new Date(job.date_posted).toLocaleDateString() : "N/A"}</p>
+                {job.remote_derived && (
+                  <span className="inline-block mt-2 text-sm bg-green-700 px-3 py-1 rounded">
+                    Remote
+                  </span>
+                )}
               </div>
-              <div className="flex justify-between mt-4 md:mt-0 space-x-4">
-                <a
-                  href={job.company.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-gray-700 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-300"
-                >
-                  View Company Profile
-                </a>
-                <div className="space-x-4">
-                  <button
-                    onClick={() => window.open(job.url, "_blank")}
-                    className="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-500 transition-colors duration-300"
+
+              <div className="flex flex-col gap-2">
+                {job.organization_url && (
+                  <a
+                    href={job.organization_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"
                   >
-                    Apply
-                  </button>
-                </div>
+                    Company
+                  </a>
+                )}
+                <button
+                  onClick={() => window.open(job.url, "_blank")}
+                  className="bg-gray-600 px-4 py-2 rounded hover:bg-gray-500"
+                >
+                  Apply
+                </button>
               </div>
             </div>
           ))
-        ) : (
-          <p className="text-center text-lg text-gray-300">No jobs found</p>
-        )}
-      </div>
-
-      {/* Pagination Controls */}
-      <div className="flex justify-center space-x-4 mt-6">
-        {currentPage > 1 && (
-          <button
-            className="bg-gray-700 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-300"
-            onClick={() => paginate(currentPage - 1)}
-          >
-            Prev
-          </button>
-        )}
-
-        <span className="text-white">
-          Page {currentPage} of {totalPages}
-        </span>
-
-        {currentPage < totalPages && (
-          <button
-            className="bg-gray-700 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-300"
-            onClick={() => paginate(currentPage + 1)}
-          >
-            Next
-          </button>
         )}
       </div>
     </div>
