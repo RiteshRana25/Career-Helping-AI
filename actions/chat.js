@@ -2,13 +2,11 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenAI } from "@google/genai"; // Updated import for the latest API
+import { GoogleGenAI } from "@google/genai";
 
-// Initialize client (picks up GEMINI_API_KEY from environment variables)
 const ai = new GoogleGenAI({});
 
 export async function sendMessageToBot(message) {
-  // Authenticate user
   const { userId: clerkUserId } = await auth();
   if (!clerkUserId) throw new Error("Unauthorized");
 
@@ -19,7 +17,6 @@ export async function sendMessageToBot(message) {
 
   const dbUserId = user.id;
 
-  // Save user message
   await db.chatMessage.create({
     data: {
       userId: dbUserId,
@@ -28,15 +25,13 @@ export async function sendMessageToBot(message) {
     },
   });
 
-  // Get bot response from Gemini 2.5 Flash
   const result = await ai.models.generateContent({
-    model: "gemini-2.5-flash", // ✅ Supported model
+    model: "gemini-2.5-flash",
     contents: message,
   });
 
   const botResponse = result.text.trim();
 
-  // Save bot response
   await db.chatMessage.create({
     data: {
       userId: dbUserId,
